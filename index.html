@@ -197,24 +197,14 @@ var CONFIG = {
     })(t0);
   }
 
-  /* 10 cliques na foto: as bolas dão 1 volta completa e param */
-  var cliques = 0, tCli = 0, girando = false;
-  function volta() {
-    girando = true;
-    vai(rot + TAU, 4000, suave, function () { girando = false; aplica(((rot % TAU) + TAU) % TAU); });
-  }
+  var girando = false;
   $('foto').addEventListener('click', function () {
     /* bolas giradas: 1 toque na foto devolve tudo às posições originais */
     var casa = Math.round(rot / TAU) * TAU;
     if (!girando && Math.abs(rot - casa) > .001) {
-      cliques = 0;
       vai(casa, Math.min(500 + Math.abs(casa - rot) * 450, 1800), suave, function () { aplica(0); });
       return;
     }
-    var agora = Date.now();
-    if (agora - tCli > 3000) cliques = 0;
-    tCli = agora; cliques++;
-    if (cliques >= 10 && !girando) { cliques = 0; volta(); }
   });
 
   /* celular: segure e arraste as bolas; solte rápido e elas giram como roleta,
