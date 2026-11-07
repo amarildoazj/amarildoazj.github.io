@@ -68,10 +68,10 @@
   .rede::before { inset: -9%; border: 2.5px dashed #fff; }
   .rede:hover::before, .rede:focus-visible::before, .rede:active::before { opacity: 1; scale: 1; animation: giraR 12s linear infinite; }
   @keyframes giraR { to { rotate: 360deg; } }
-  @media (hover: none), (max-width: 700px) { .rede::before { display: none; } }
   .rede svg { width: 54%; height: 54%; display: block; }
   .rede:hover, .rede:focus-visible { transform: scale(1.22); box-shadow: 0 10px 24px rgba(0,0,0,.6); z-index: 3; }
   .rede:active { transform: scale(1.1); z-index: 3; }
+  @media (hover: none), (max-width: 700px) { .rede::before { display: none; } .rede:hover, .rede:focus-visible, .rede:active { transform: none; box-shadow: none; } }
   @keyframes sai { from { opacity: 0; transform: translate(calc(var(--x) * -190%), calc(var(--y) * -190%)) scale(.2); } to { opacity: 1; transform: none; } }
   @keyframes entra { from { opacity: 0; transform: translate(-50%, -50%) scale(.6); } to { opacity: 1; transform: translate(-50%, -50%); } }
 
