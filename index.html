@@ -33,6 +33,7 @@
   .pista { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
   .pista circle { fill: none; stroke: var(--line); stroke-width: 1; stroke-dasharray: .01 2.1; stroke-linecap: round;
     transform-origin: 50% 50%; animation: gira 70s linear infinite; }
+  .pista #raios { display: none; }
   .pista #raios line { stroke: var(--line); stroke-width: 1; stroke-dasharray: .01 2.1; stroke-linecap: round; animation: flui .61s linear infinite; }
   @keyframes flui { to { stroke-dashoffset: -2.11; } }
   @keyframes gira { to { transform: rotate(360deg); } }
