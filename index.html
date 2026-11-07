@@ -27,7 +27,7 @@
 
   /* palco: foto no meio, redes ao redor */
   .palco {
-    position: relative; flex: none;
+    position: relative; flex: none; touch-action: none; -webkit-user-select: none; user-select: none;
     width: min(94vw, 560px, calc(100dvh - 80px)); aspect-ratio: 1; margin: 0 auto;
   }
   .pista { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
@@ -168,23 +168,40 @@ var CONFIG = {
     itens.push({ el: el, ln: ln, a: a });
   });
 
+  /* gira todas as bolas em volta da foto (rot = ângulo extra, em radianos) */
+  var rot = 0;
+  function aplica(r) {
+    rot = r;
+    itens.forEach(function (it) {
+      var a = it.a + r, x = Math.cos(a), y = Math.sin(a);
+      it.el.style.setProperty('--x', x.toFixed(4));
+      it.el.style.setProperty('--y', y.toFixed(4));
+      it.ln.setAttribute('x2', (50 + x * 38.5).toFixed(2));
+      it.ln.setAttribute('y2', (50 + y * 38.5).toFixed(2));
+    });
+  }
+  var suave = function (k) { return k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2; };
+  var forte = function (k) { return 1 - Math.pow(1 - k, 4); };
+  var PASSO = Math.PI * 2 / n, TAU = Math.PI * 2;
+
+  /* anima rot até "alvo" */
+  var raf = 0, ocupado = false;
+  function vai(alvo, dur, ease, fim) {
+    cancelAnimationFrame(raf);
+    var r0 = rot, t0 = performance.now();
+    ocupado = true;
+    (function passo(t) {
+      var k = Math.min((t - t0) / dur, 1);
+      aplica(r0 + (alvo - r0) * ease(k));
+      if (k < 1) raf = requestAnimationFrame(passo); else { ocupado = false; if (fim) fim(); }
+    })(t0);
+  }
+
   /* 10 cliques na foto: as bolas dão 1 volta completa e param */
   var cliques = 0, tCli = 0, girando = false;
   function volta() {
     girando = true;
-    var t0 = performance.now(), dur = 4000;
-    (function passo(t) {
-      var k = Math.min((t - t0) / dur, 1);
-      var e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2; /* suave no início e no fim */
-      itens.forEach(function (it) {
-        var a = it.a + e * Math.PI * 2, x = Math.cos(a), y = Math.sin(a);
-        it.el.style.setProperty('--x', x.toFixed(4));
-        it.el.style.setProperty('--y', y.toFixed(4));
-        it.ln.setAttribute('x2', (50 + x * 38.5).toFixed(2));
-        it.ln.setAttribute('y2', (50 + y * 38.5).toFixed(2));
-      });
-      if (k < 1) requestAnimationFrame(passo); else girando = false;
-    })(t0);
+    vai(rot + TAU, 4000, suave, function () { girando = false; aplica(((rot % TAU) + TAU) % TAU); });
   }
   $('foto').addEventListener('click', function () {
     var agora = Date.now();
@@ -192,6 +209,47 @@ var CONFIG = {
     tCli = agora; cliques++;
     if (cliques >= 10 && !girando) { cliques = 0; volta(); }
   });
+
+  /* celular: segure e arraste as bolas; solte rápido e elas giram como roleta,
+     sempre parando numa das posições originais */
+  var dedo = null, moveu = false;
+  function angDe(e) {
+    var r = palco.getBoundingClientRect();
+    return Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2));
+  }
+  palco.addEventListener('pointerdown', function (e) {
+    if (e.pointerType === 'mouse' || girando) return;
+    cancelAnimationFrame(raf); ocupado = false;
+    dedo = { id: e.pointerId, ang: angDe(e), x: e.clientX, y: e.clientY, v: 0, t: performance.now() };
+    moveu = false;
+    try { palco.setPointerCapture(e.pointerId); } catch (x) {}
+  });
+  palco.addEventListener('pointermove', function (e) {
+    if (!dedo || e.pointerId !== dedo.id) return;
+    if (Math.abs(e.clientX - dedo.x) + Math.abs(e.clientY - dedo.y) > 8) moveu = true;
+    if (!moveu) return;
+    var a = angDe(e), d = a - dedo.ang;
+    if (d > Math.PI) d -= TAU; else if (d < -Math.PI) d += TAU;
+    var t = performance.now(), dt = Math.max(t - dedo.t, 1);
+    dedo.v = dedo.v * .6 + (d / dt) * .4;   /* rad/ms, suavizado */
+    dedo.ang = a; dedo.t = t;
+    aplica(rot + d);
+  });
+  function solta(e) {
+    if (!dedo || e.pointerId !== dedo.id) return;
+    var v = dedo.v, parado = performance.now() - dedo.t > 90;
+    dedo = null;
+    if (!moveu) return;
+    if (parado) v = 0;                       /* segurou parado antes de soltar */
+    var alvo = Math.round((rot + v * 450) / PASSO) * PASSO;   /* onde a roleta vai parar */
+    var dist = Math.abs(alvo - rot);
+    vai(alvo, Math.min(300 + dist * 450, 4500), forte, function () { aplica(Math.round(rot / PASSO) * PASSO); });
+  }
+  palco.addEventListener('pointerup', solta);
+  palco.addEventListener('pointercancel', solta);
+  palco.addEventListener('click', function (e) {
+    if (moveu) { e.preventDefault(); e.stopPropagation(); moveu = false; }
+  }, true);
 
   /* foto: usa a imagem se ela existir; senão ficam as iniciais */
   var img = $('img');
