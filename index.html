@@ -170,7 +170,16 @@ var CONFIG = {
 
   /* gira todas as bolas em volta da foto (rot = ângulo extra, em radianos) */
   var rot = 0;
+  /* vibração (Android; o iPhone não permite): um "tic" a cada posição que passa */
+  var slotAnt = 0, tVib = 0;
+  function vibra(ms) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (x) {} }
   function aplica(r) {
+    var slot = Math.floor(r / (Math.PI * 2 / n));
+    if (slot !== slotAnt) {
+      slotAnt = slot;
+      var agora = performance.now();
+      if (agora - tVib > 35) { tVib = agora; vibra(6); }
+    }
     rot = r;
     itens.forEach(function (it) {
       var a = it.a + r, x = Math.cos(a), y = Math.sin(a);
@@ -240,7 +249,7 @@ var CONFIG = {
     if (parado) v = 0;                       /* segurou parado antes de soltar */
     var alvo = Math.round((rot + v * 450) / PASSO) * PASSO;   /* onde a roleta vai parar */
     var dist = Math.abs(alvo - rot);
-    vai(alvo, Math.min(300 + dist * 450, 4500), forte, function () { aplica(Math.round(rot / PASSO) * PASSO); });
+    vai(alvo, Math.min(300 + dist * 450, 4500), forte, function () { aplica(Math.round(rot / PASSO) * PASSO); vibra(18); });
   }
   palco.addEventListener('pointerup', solta);
   palco.addEventListener('pointercancel', solta);
