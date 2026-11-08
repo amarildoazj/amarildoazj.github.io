@@ -33,6 +33,9 @@
     width: min(94vw, 560px, calc(100dvh - 80px)); aspect-ratio: 1; margin: 0 auto;
   }
   .pista { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+  .palco:not(.aberto) .pista { opacity: 0; }
+  .palco.aberto .pista { animation: anel .75s cubic-bezier(.2,.9,.2,1.15) .15s backwards; }
+  @keyframes anel { from { opacity: 0; transform: scale(.2); } to { opacity: 1; transform: none; } }
   .pista circle { fill: none; stroke: var(--line); stroke-width: 1; stroke-dasharray: .01 2.1; stroke-linecap: round;
     transform-origin: 50% 50%; animation: gira 70s linear infinite; }
   .pista #raios { display: none; }
@@ -40,7 +43,8 @@
   @keyframes flui { to { stroke-dashoffset: -2.11; } }
   @keyframes gira { to { transform: rotate(360deg); } }
 
-  .foto {
+  .palco:not(.aberto) .rede { display: none; }
+  .foto { cursor: pointer;
     position: absolute; left: 50%; top: 50%; width: 41%; aspect-ratio: 1; border-radius: 50%;
     transform: translate(-50%, -50%); overflow: hidden;
     background: var(--foto-bg);
@@ -121,7 +125,7 @@ var CONFIG = {
 
 <main class="palco" id="palco" aria-label="Minhas redes">
   <svg class="pista" viewBox="0 0 100 100" aria-hidden="true"><g id="raios"></g><circle cx="50" cy="50" r="38.5"/></svg>
-  <div class="foto" id="foto"><span class="ini" id="ini"></span><img id="img" alt="" decoding="async"></div>
+  <div class="foto" id="foto" role="button" tabindex="0" aria-label="Mostrar redes" aria-expanded="false"><span class="ini" id="ini"></span><img id="img" alt="" decoding="async"></div>
 </main>
 
 <h1 class="so-leitor" id="nome"></h1>
@@ -228,7 +232,16 @@ var CONFIG = {
     var dist = alvo - rot, dur = Math.max(1500, Math.min(4 * dist / Math.max(W, .0005), 4500));
     vai(alvo, dur, forte, function () { aplica(0); girando = false; });
   }
+  $('foto').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.click(); }
+  });
   $('foto').addEventListener('click', function () {
+    /* primeiro toque: as bolas aparecem */
+    if (!palco.classList.contains('aberto')) {
+      palco.classList.add('aberto'); cliques = 0;
+      $('foto').setAttribute('aria-expanded', 'true'); $('foto').setAttribute('aria-label', 'Foto de perfil');
+      return;
+    }
     if (rodando) { freia(); return; }
     if (girando) return;
     var casa = Math.round(rot / TAU) * TAU;
@@ -237,7 +250,7 @@ var CONFIG = {
       return;
     }
     var agora = Date.now();
-    if (agora - tCli > 2500) cliques = 0;
+    if (agora - tCli > 4000) cliques = 0;
     tCli = agora; cliques++;
     if (cliques >= 5) dispara();
   });
@@ -250,7 +263,7 @@ var CONFIG = {
     return Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2));
   }
   palco.addEventListener('pointerdown', function (e) {
-    if (e.pointerType === 'mouse' || girando) return;
+    if (e.pointerType === 'mouse' || girando || !palco.classList.contains('aberto')) return;
     cancelAnimationFrame(raf); ocupado = false;
     dedo = { id: e.pointerId, ang: angDe(e), x: e.clientX, y: e.clientY, v: 0, t: performance.now() };
     moveu = false;
