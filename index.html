@@ -170,16 +170,7 @@ var CONFIG = {
 
   /* gira todas as bolas em volta da foto (rot = ângulo extra, em radianos) */
   var rot = 0;
-  /* vibração (Android; o iPhone não permite): um "tic" a cada posição que passa */
-  var slotAnt = 0, tVib = 0;
-  function vibra(ms) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (x) {} }
   function aplica(r) {
-    var slot = Math.floor(r / (Math.PI * 2 / n));
-    if (slot !== slotAnt) {
-      slotAnt = slot;
-      var agora = performance.now();
-      if (agora - tVib > 35) { tVib = agora; vibra(6); }
-    }
     rot = r;
     itens.forEach(function (it) {
       var a = it.a + r, x = Math.cos(a), y = Math.sin(a);
@@ -206,14 +197,40 @@ var CONFIG = {
     })(t0);
   }
 
-  var girando = false;
+  /* foto: 5 toques = giro rápido sem parar; mais 1 toque = vai parando até a posição original;
+     com as bolas giradas à mão, 1 toque devolve às posições originais */
+  var cliques = 0, tCli = 0, girando = false, W = 0, wMax = .0065, rodando = 0;
+  function dispara() {
+    girando = true; cliques = 0;
+    cancelAnimationFrame(raf); ocupado = false;
+    var tAnt = performance.now(), t0 = tAnt;
+    rodando = 1;
+    (function passo(t) {
+      if (!rodando) return;
+      var dt = t - tAnt; tAnt = t;
+      W = wMax * Math.min((t - t0) / 900, 1);          /* acelera até a velocidade máxima */
+      aplica(rot + W * dt);
+      requestAnimationFrame(passo);
+    })(tAnt);
+  }
+  function freia() {
+    rodando = 0;
+    var alvo = Math.ceil((rot + W * 700) / TAU) * TAU;  /* próxima passagem pela posição original */
+    var dist = alvo - rot, dur = Math.max(1500, Math.min(4 * dist / Math.max(W, .0005), 4500));
+    vai(alvo, dur, forte, function () { aplica(0); girando = false; });
+  }
   $('foto').addEventListener('click', function () {
-    /* bolas giradas: 1 toque na foto devolve tudo às posições originais */
+    if (rodando) { freia(); return; }
+    if (girando) return;
     var casa = Math.round(rot / TAU) * TAU;
-    if (!girando && Math.abs(rot - casa) > .001) {
+    if (Math.abs(rot - casa) > .001) {
       vai(casa, Math.min(500 + Math.abs(casa - rot) * 450, 1800), suave, function () { aplica(0); });
       return;
     }
+    var agora = Date.now();
+    if (agora - tCli > 2500) cliques = 0;
+    tCli = agora; cliques++;
+    if (cliques >= 5) dispara();
   });
 
   /* celular: segure e arraste as bolas; solte rápido e elas giram como roleta,
@@ -247,9 +264,9 @@ var CONFIG = {
     dedo = null;
     if (!moveu) return;
     if (parado) v = 0;                       /* segurou parado antes de soltar */
-    var alvo = Math.round((rot + v * 450) / PASSO) * PASSO;   /* onde a roleta vai parar */
+    var alvo = Math.round((rot + v * 1100) / PASSO) * PASSO;   /* onde a roleta vai parar */
     var dist = Math.abs(alvo - rot);
-    vai(alvo, Math.min(300 + dist * 450, 4500), forte, function () { aplica(Math.round(rot / PASSO) * PASSO); vibra(18); });
+    vai(alvo, Math.min(300 + dist * 380, 4200), forte, function () { aplica(Math.round(rot / PASSO) * PASSO); });
   }
   palco.addEventListener('pointerup', solta);
   palco.addEventListener('pointercancel', solta);
