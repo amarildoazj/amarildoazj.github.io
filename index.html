@@ -6,7 +6,6 @@
 <meta name="theme-color" content="#f5f3ec">
 <title>Amarildo Antonio Zuffo Junior</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTUiIGZpbGw9IiNjNDYyM2YiLz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxMCAxMCkgc2NhbGUoMS44MykiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2Y1ZjNlYyIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik0xNC43IDYuM2ExIDEgMCAwIDAgMCAxLjRsMS42IDEuNmExIDEgMCAwIDAgMS40IDBsMy43Ny0zLjc3YTYgNiAwIDAgMS03Ljk0IDcuOTRsLTYuOTEgNi45MWEyLjEyIDIuMTIgMCAwIDEtMy0zbDYuOTEtNi45MWE2IDYgMCAwIDEgNy45NC03Ljk0bC0zLjc2IDMuNzZ6Ii8+PC9nPjwvc3ZnPg==">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="description" content="Amarildo Antonio Zuffo Junior: ferramentas e links.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -54,7 +53,7 @@
   }
   .links { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.75rem 1.5rem; }
   .link {
-    display: flex; flex-direction: column; align-items: center; gap: 0.7rem; width: 6.5rem;
+    display: block; width: 5.5rem;
     color: var(--fg); text-decoration: none; touch-action: manipulation;
   }
   .link:focus { outline: none; }
@@ -64,10 +63,8 @@
     transition: transform .2s, box-shadow .2s;
   }
   .bola svg { width: 52%; height: 52%; display: block; }
-  .nome { font-size: 0.9375rem; font-weight: 500; color: var(--muted); }
   @media (hover: hover) {
     .link:hover .bola { transform: scale(1.08); box-shadow: 0 10px 24px rgba(0, 0, 0, .28); }
-    .link:hover .nome { color: var(--fg); }
   }
   .link:active .bola { transform: scale(.96); }
   @media (prefers-reduced-motion: reduce) { .bola { transition: none; } }
@@ -112,8 +109,8 @@ var CHAVE_TEMA = 'ferramentas-tema';   /* mesma chave do site Ferramentas: o tem
     a.className = 'link'; a.href = l.url; a.setAttribute('aria-label', l.nome);
     a.style.setProperty('--cor', l.cor);
     a.innerHTML = '<span class="bola"><svg viewBox="0 0 24 24" aria-hidden="true">' + (ICONES[l.icone] || '') +
-      '</svg></span><span class="nome"></span>';
-    a.querySelector('.nome').textContent = l.nome;
+      '</svg></span>';
+    a.title = l.nome;
     $('links').appendChild(a);
   });
 
