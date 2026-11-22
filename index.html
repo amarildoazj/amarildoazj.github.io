@@ -67,6 +67,11 @@
     .link:hover .bola { transform: scale(1.08); box-shadow: 0 10px 24px rgba(0, 0, 0, .28); }
   }
   .link:active .bola { transform: scale(.96); }
+  @media (max-width: 40rem) {   /* celular: bolinha menor */
+    .link { width: 3.75rem; }
+    .bola { width: 3.75rem; height: 3.75rem; }
+    .links { gap: 1.25rem 1.1rem; }
+  }
   @media (prefers-reduced-motion: reduce) { .bola { transition: none; } }
 </style>
 </head>
